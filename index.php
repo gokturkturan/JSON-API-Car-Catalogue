@@ -80,14 +80,13 @@
     
                 if($deleteCar && $deleteRating) {
                     $code = 200;
+                    $json["Error"] = FALSE;
                     $json["Message"] = "Car and its rating were deleted.";
                 } else {
                     $code = 400;
                     $json["Error"] = TRUE;
                     $json["Message"] = "Car and its rating are not deleted.";
                 }
-                
-                
             } else {
                 $code = 400;
                 $json["Error"] = TRUE;
@@ -112,6 +111,31 @@
                 $json["Error"] = TRUE;
                 $json["Message"] = "Please send id";
             }
+        } else if ($_SERVER['REQUEST_METHOD'] == "PUT") {
+            $input = json_decode(file_get_contents("php://input"));
+            if(isset($input->id) && isset($input->make) && isset($input->model) && isset($input->trims) && isset($input->year)) {
+                $getTable = mysqli_query($connect,"SELECT * FROM cars WHERE id='$input->id'");
+                if(mysqli_num_rows($getTable) == 0) {
+                    $code = 400;
+                    $json["Error"] = TRUE;
+                    $json["Message"] = "There is no such car.";
+                } else {
+                    $updateTable =  mysqli_query($connect,"UPDATE cars SET make='$input->make', model='$input->model', trims='$input->trims', year='$input->year' WHERE id='$input->id'");
+                    if($updateTable) {
+                        $code = 200;
+                        $json["Error"] = FALSE;
+                        $json["Message"] = "Update successful.";
+                    } else {
+                        $code = 400;
+                        $json["Error"] = TRUE;
+                        $json["Message"] = "Update failed.";
+                    }
+                }
+            } else {
+			    $_code = 400;
+			    $jsonArray["Error"] = TRUE;
+	 		    $jsonArray["Message"] = "Car information not sent.";
+		    }
         } else {
             $json["Error"] = TRUE;
             $json["Message"] = "Request does not found.";
