@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Anamakine: 127.0.0.1
--- Üretim Zamanı: 25 Haz 2022, 15:44:55
+-- Üretim Zamanı: 25 Haz 2022, 20:33:28
 -- Sunucu sürümü: 10.4.24-MariaDB
 -- PHP Sürümü: 8.1.6
 
@@ -36,14 +36,6 @@ CREATE TABLE `cars` (
   `created_at` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
 
---
--- Tablo döküm verisi `cars`
---
-
-INSERT INTO `cars` (`id`, `make`, `model`, `trims`, `year`, `created_at`) VALUES
-(1, 'Ford', 'Kuga', 'Titanium 1.5', 2020, '2022-06-25 12:33:53'),
-(3, 'Toyota', 'Corolla', '1.4 D-4D', 2006, '2022-06-25 12:34:49');
-
 -- --------------------------------------------------------
 
 --
@@ -62,8 +54,7 @@ CREATE TABLE `rating` (
 --
 
 INSERT INTO `rating` (`id`, `car_id`, `agency`, `rating`) VALUES
-(3, 3, 'Euro NCAP', 7.8),
-(4, 3, 'India NCAP', 7.8);
+(1, 2, 'Euro NCAP', 9.8);
 
 --
 -- Dökümü yapılmış tablolar için indeksler
@@ -90,23 +81,13 @@ ALTER TABLE `rating`
 -- Tablo için AUTO_INCREMENT değeri `cars`
 --
 ALTER TABLE `cars`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- Tablo için AUTO_INCREMENT değeri `rating`
 --
 ALTER TABLE `rating`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
-
---
--- Dökümü yapılmış tablolar için kısıtlamalar
---
-
---
--- Tablo kısıtlamaları `rating`
---
-ALTER TABLE `rating`
-  ADD CONSTRAINT `rating_ibfk_1` FOREIGN KEY (`car_id`) REFERENCES `cars` (`id`);
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

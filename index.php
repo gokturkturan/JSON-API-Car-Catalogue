@@ -15,36 +15,58 @@
     if($connect) {
         mysqli_select_db($connect, $db);
         if($_SERVER['REQUEST_METHOD'] == "POST") {
-            if(!isset($_POST["make"]) || !isset($_POST["model"]) || !isset($_POST["trims"]) || !isset($_POST["year"])) {
-                $code = 400;
-                $json["Error"] = TRUE;
-                $json["Message"] = "Please POST every data.";
-            } else {
-                $make = addslashes($_POST["make"]);
-                $model = addslashes($_POST["model"]);
-                $trims = addslashes($_POST["trims"]);
-                $year = addslashes($_POST["year"]);
-                $agency = addslashes($_POST["agency"]);
-                $rating = addslashes($_POST["rating"]);
-
-                if(empty($make) || empty($model) || empty($trims) || empty($year)) {
+            if($_POST["action"] == "addCar") {
+                if(!isset($_POST["make"]) || !isset($_POST["model"]) || !isset($_POST["trims"]) || !isset($_POST["year"])) {
                     $code = 400;
                     $json["Error"] = TRUE;
-                    $json["Message"] = "Please do not leave a blank space.";
+                    $json["Message"] = "Please POST every data.";
                 } else {
-                    $getTable = mysqli_query($connect,"SELECT * FROM cars WHERE make='$make' AND model='$model' AND trims='$trims' AND year='$year'");
-    
-                    if(mysqli_num_rows($getTable) == 0) {
-                        $addTable1 = mysqli_query($connect,"INSERT INTO cars (make,model,trims,year) VALUES('$make','$model','$trims','$year')");
+                    $make = trim(addslashes($_POST["make"]));
+                    $model = trim(addslashes($_POST["model"]));
+                    $trims = trim(addslashes($_POST["trims"]));
+                    $year = trim(addslashes($_POST["year"]));
+
+                    if(empty($make) || empty($model) || empty($trims) || empty($year)) {
+                        $code = 400;
+                        $json["Error"] = TRUE;
+                        $json["Message"] = "Please do not leave a blank space.";
+                    } else {
                         $getTable = mysqli_query($connect,"SELECT * FROM cars WHERE make='$make' AND model='$model' AND trims='$trims' AND year='$year'");
-                        if(mysqli_num_rows($getTable) == 1) {
-                            while($row = mysqli_fetch_assoc($getTable)) {
-                                $id = $row['id'];
-                                $addTable2 = mysqli_query($connect,"INSERT INTO rating (car_id,agency,rating) VALUES('$id','$agency','$rating')");
-                                $json["Message"] = "Your inputs added to the cars and rating table.";
+                        if(mysqli_num_rows($getTable) == 0) {
+                            $addTable = mysqli_query($connect,"INSERT INTO cars (make,model,trims,year) VALUES('$make','$model','$trims','$year')");
+                            if($addTable) {
+                                $code = 200;
+                                $json["Error"] = FALSE;
+                                $json["Message"] = "Your input added to the cars table.";
+                            } else {
+                                $code = 400;
+                                $json["Error"] = TRUE;
+                                $json["Message"] = "Your input did not add to the cars table.";
                             }
+                        } else {
+                            $code = 400;
+                            $json["Error"] = TRUE;
+                            $json["Message"] = "This car is already added to the table.";
                         }
-                    } else if (mysqli_num_rows($getTable) == 1) {
+                    }
+                }
+            } else if ($_POST["action"] == "addCarRating") {
+                if(!isset($_POST["make"]) || !isset($_POST["model"]) || !isset($_POST["trims"]) || !isset($_POST["year"]) || !isset($_POST["agency"]) || !isset($_POST["rating"])) {
+                    $code = 400;
+                    $json["Error"] = TRUE;
+                    $json["Message"] = "Please POST every data.";
+                } else {
+                    $make = trim(addslashes($_POST["make"]));
+                    $model = trim(addslashes($_POST["model"]));
+                    $trims = trim(addslashes($_POST["trims"]));
+                    $year = trim(addslashes($_POST["year"]));
+                    $agency = trim(addslashes($_POST["agency"]));
+                    $rating = trim(addslashes($_POST["rating"]));
+                    if(empty($make) || empty($model) || empty($trims) || empty($year) || empty($agency) || empty($rating)) {
+                        $code = 400;
+                        $json["Error"] = TRUE;
+                        $json["Message"] = "Please do not leave a blank space.";
+                    } else {
                         $getTable = mysqli_query($connect,"SELECT * FROM cars WHERE make='$make' AND model='$model' AND trims='$trims' AND year='$year'");
                         if(mysqli_num_rows($getTable) == 1) {
                             while($row = mysqli_fetch_assoc($getTable)) {
@@ -54,23 +76,47 @@
                                     $getTable = mysqli_query($connect,"SELECT * FROM rating WHERE agency = '$agency' AND car_id = '$id'");
                                     if(mysqli_num_rows($getTable) == 0) {
                                         $addTable2 = mysqli_query($connect,"INSERT INTO rating (car_id,agency,rating) VALUES ('$id','$agency','$rating')");
-                                        $json["Message"] = "New rating is added to the table.";
+                                        if($addTable2) {
+                                            $code = 200;
+                                            $json["Error"] = FALSE;
+                                            $json["Message"] = "Evaluation is added.";
+                                        } else {
+                                            $code = 400;
+                                            $json["Error"] = TRUE;
+                                            $json["Message"] = "Evaluation did not added.";
+                                        }
                                     } else {
                                         $code = 400;
                                         $json["Error"] = TRUE;
                                         $json["Message"] = "This evaluation is already added.";
                                     }
                                     break;
+                                } else {
+                                    $addTable = mysqli_query($connect,"INSERT INTO rating (car_id,agency,rating) VALUES('$id','$agency','$rating')");
+                                    if($addTable) {
+                                        $code = 200;
+                                        $json["Error"] = FALSE;
+                                        $json["Message"] = "Evaluation is added.";
+                                    } else {
+                                        $code = 400;
+                                        $json["Error"] = TRUE;
+                                        $json["Message"] = "Evaluation did not added.";
+                                    }
                                 }
                             }
-                        } 
-                    } else {
-                        $code = 400;
-                        $json["Error"] = TRUE;
-                        $json["Message"] = "This car is already added to the table.";
+                        } else {
+                            $code = 400;
+                            $json["Error"] = TRUE;
+                            $json["Message"] = "Please add the car first.";
+                        }
                     }
                 }
+            } else {
+                $code = 400;
+                $json["Error"] = TRUE;
+                $json["Message"] = "Please sent your action (addCar or addCarRating)";
             }
+            
         } else if ($_SERVER['REQUEST_METHOD'] == "DELETE") {
             if(isset($_GET["id"]) && !empty(trim($_GET["id"]))) {
                 $CarTableID = intval($_GET["id"]);
@@ -130,12 +176,12 @@
                 if(mysqli_num_rows($getTable) == 0) {
                     $code = 400;
                     $json["Error"] = TRUE;
-                    $json["Message"] = "There is no such car, you cannot update.";
+                    $json["Message"] = "There is no such car. You cannot update.";
                 } else {
                     if(mysqli_num_rows($checkTable) == 1) {
                         $code = 400;
                         $json["Error"] = TRUE;
-                        $json["Message"] = "This car already exists.";
+                        $json["Message"] = "This car already exists. You cannot update.";
                     } else {
                         $row = mysqli_fetch_assoc($getTable);
                         if($row['make'] != $input->make || $row['model'] != $input->model || $row['trims'] != $input->trims || $row['year'] != $input->year) {
