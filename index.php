@@ -74,19 +74,25 @@
         } else if ($_SERVER['REQUEST_METHOD'] == "DELETE") {
             if(isset($_GET["id"]) && !empty(trim($_GET["id"]))) {
                 $CarTableID = intval($_GET["id"]);
-                
-                $deleteCar = mysqli_query($connect,"DELETE FROM cars WHERE id='$CarTableID'");
-                $deleteRating = mysqli_query($connect,"DELETE FROM rating WHERE car_id='$CarTableID'");
-    
-                if($deleteCar && $deleteRating) {
-                    $code = 200;
-                    $json["Error"] = FALSE;
-                    $json["Message"] = "Car and its rating were deleted.";
-                } else {
+                $getTable = mysqli_query($connect,"SELECT * FROM cars WHERE id='$CarTableID'");
+                if(mysqli_num_rows($getTable) == 0) {
                     $code = 400;
                     $json["Error"] = TRUE;
-                    $json["Message"] = "Car and its rating are not deleted.";
-                }
+                    $json["Message"] = "There is no such car.";
+                } else {
+                    $deleteCar = mysqli_query($connect,"DELETE FROM cars WHERE id='$CarTableID'");
+                    $deleteRating = mysqli_query($connect,"DELETE FROM rating WHERE car_id='$CarTableID'");
+    
+                    if($deleteCar && $deleteRating) {
+                        $code = 200;
+                        $json["Error"] = FALSE;
+                        $json["Message"] = "Car and its rating were deleted.";
+                    } else {
+                        $code = 400;
+                        $json["Error"] = TRUE;
+                        $json["Message"] = "Car and its rating are not deleted.";
+                    }
+                }  
             } else {
                 $code = 400;
                 $json["Error"] = TRUE;
@@ -105,7 +111,11 @@
                     if($row = mysqli_fetch_assoc($carRatingData)) {
                         $json["carRatingData"] = $row;
                     }
-                } 
+                } else if (mysqli_num_rows($getTable) == 0) {
+                    $code = 400;
+                    $json["Error"] = TRUE;
+                    $json["Message"] = "There is no such car";
+                }
             } else {
                 $code = 400;
                 $json["Error"] = TRUE;
@@ -115,29 +125,37 @@
             $input = json_decode(file_get_contents("php://input"));
             if(isset($input->id) && isset($input->make) && isset($input->model) && isset($input->trims) && isset($input->year)) {
                 $getTable = mysqli_query($connect,"SELECT * FROM cars WHERE id='$input->id'");
+                $checkTable = mysqli_query($connect,"SELECT * FROM cars WHERE make='$input->make' AND model='$input->model' AND trims='$input->trims' AND year='$input->year'");
+
                 if(mysqli_num_rows($getTable) == 0) {
                     $code = 400;
                     $json["Error"] = TRUE;
-                    $json["Message"] = "There is no such car.";
+                    $json["Message"] = "There is no such car, you cannot update.";
                 } else {
-                    $row = mysqli_fetch_assoc($getTable);
-                    $updateTable;
-                    if($row['make'] != $input->make || $row['model'] != $input->model || $row['trims'] != $input->trims || $row['year'] != $input->year) {
-                        $deleteRating = mysqli_query($connect,"DELETE FROM rating WHERE car_id='$input->id'"); 
-                        $updateTable =  mysqli_query($connect,"UPDATE cars SET make='$input->make', model='$input->model', trims='$input->trims', year='$input->year' WHERE id='$input->id'");
-                        if($updateTable) {
-                            $json["Error"] = FALSE;
-                            $json["Message"] = "Update successful.";
+                    if(mysqli_num_rows($checkTable) == 1) {
+                        $code = 400;
+                        $json["Error"] = TRUE;
+                        $json["Message"] = "This car already exists.";
+                    } else {
+                        $row = mysqli_fetch_assoc($getTable);
+                        if($row['make'] != $input->make || $row['model'] != $input->model || $row['trims'] != $input->trims || $row['year'] != $input->year) {
+                            $deleteRating = mysqli_query($connect,"DELETE FROM rating WHERE car_id='$input->id'"); 
+                            $updateTable =  mysqli_query($connect,"UPDATE cars SET make='$input->make', model='$input->model', trims='$input->trims', year='$input->year' WHERE id='$input->id'");
+                            if($updateTable && $deleteRating) {
+                                $code = 200;
+                                $json["Error"] = FALSE;
+                                $json["Message"] = "Old car is deleted and Update successful.";
+                            } else {
+                                $code = 400;
+                                $json["Error"] = TRUE;
+                                $json["Message"] = "Update failed.";
+                            }
                         } else {
                             $code = 400;
                             $json["Error"] = TRUE;
-                            $json["Message"] = "Update failed.";
+                            $json["Message"] = "The data you updated is the same.";
                         }
-                    } else {
-                        $code = 400;
-                        $json["Error"] = TRUE;
-                        $json["Message"] = "The data you updated is the same.";
-                    }
+                    } 
                 }
             } else {
 			    $code = 400;
