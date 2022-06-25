@@ -120,23 +120,32 @@
                     $json["Error"] = TRUE;
                     $json["Message"] = "There is no such car.";
                 } else {
-                    $updateTable =  mysqli_query($connect,"UPDATE cars SET make='$input->make', model='$input->model', trims='$input->trims', year='$input->year' WHERE id='$input->id'");
-                    if($updateTable) {
-                        $code = 200;
-                        $json["Error"] = FALSE;
-                        $json["Message"] = "Update successful.";
+                    $row = mysqli_fetch_assoc($getTable);
+                    $updateTable;
+                    if($row['make'] != $input->make || $row['model'] != $input->model || $row['trims'] != $input->trims || $row['year'] != $input->year) {
+                        $deleteRating = mysqli_query($connect,"DELETE FROM rating WHERE car_id='$input->id'"); 
+                        $updateTable =  mysqli_query($connect,"UPDATE cars SET make='$input->make', model='$input->model', trims='$input->trims', year='$input->year' WHERE id='$input->id'");
+                        if($updateTable) {
+                            $json["Error"] = FALSE;
+                            $json["Message"] = "Update successful.";
+                        } else {
+                            $code = 400;
+                            $json["Error"] = TRUE;
+                            $json["Message"] = "Update failed.";
+                        }
                     } else {
                         $code = 400;
                         $json["Error"] = TRUE;
-                        $json["Message"] = "Update failed.";
+                        $json["Message"] = "The data you updated is the same.";
                     }
                 }
             } else {
-			    $_code = 400;
+			    $code = 400;
 			    $jsonArray["Error"] = TRUE;
 	 		    $jsonArray["Message"] = "Car information not sent.";
 		    }
         } else {
+            $code = 400;
             $json["Error"] = TRUE;
             $json["Message"] = "Request does not found.";
         }
