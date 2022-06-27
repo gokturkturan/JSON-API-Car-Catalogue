@@ -21,10 +21,10 @@
                     $json["Error"] = TRUE;
                     $json["Message"] = "Please POST every data.";
                 } else {
-                    $make = trim(addslashes($_POST["make"]));
-                    $model = trim(addslashes($_POST["model"]));
-                    $trims = trim(addslashes($_POST["trims"]));
-                    $year = trim(addslashes($_POST["year"]));
+                    $make = mysqli_real_escape_string($connect,$_POST["make"]);
+                    $model = mysqli_real_escape_string($connect,$_POST["model"]);
+                    $trims = mysqli_real_escape_string($connect,$_POST["trims"]);
+                    $year = mysqli_real_escape_string($connect,$_POST["year"]);
 
                     if(empty($make) || empty($model) || empty($trims) || empty($year)) {
                         $code = 400;
@@ -56,12 +56,12 @@
                     $json["Error"] = TRUE;
                     $json["Message"] = "Please POST every data.";
                 } else {
-                    $make = trim(addslashes($_POST["make"]));
-                    $model = trim(addslashes($_POST["model"]));
-                    $trims = trim(addslashes($_POST["trims"]));
-                    $year = trim(addslashes($_POST["year"]));
-                    $agency = trim(addslashes($_POST["agency"]));
-                    $rating = trim(addslashes($_POST["rating"]));
+                    $make =mysqli_real_escape_string($connect,$_POST["make"]);
+                    $model = mysqli_real_escape_string($connect,$_POST["model"]);
+                    $trims = mysqli_real_escape_string($connect,$_POST["trims"]);
+                    $year = mysqli_real_escape_string($connect,$_POST["year"]);
+                    $agency = mysqli_real_escape_string($connect,$_POST["agency"]);
+                    $rating = mysqli_real_escape_string($connect,$_POST["rating"]);
                     if(empty($make) || empty($model) || empty($trims) || empty($year) || empty($agency) || empty($rating)) {
                         $code = 400;
                         $json["Error"] = TRUE;
@@ -154,9 +154,11 @@
                     if($row = mysqli_fetch_assoc($carData)) {
                         $json["carData"] = $row;
                     }
-                    if($row = mysqli_fetch_assoc($carRatingData)) {
-                        $json["carRatingData"] = $row;
+                    $carRatings = [];
+                    while($row = mysqli_fetch_assoc($carRatingData)) {
+                        $carRatings[] = $row;
                     }
+                    $json["carRatingData"] = $carRatings;
                 } else if (mysqli_num_rows($getTable) == 0) {
                     $code = 400;
                     $json["Error"] = TRUE;
