@@ -225,5 +225,3 @@
     SetHeader($code);
     $json[$code] = HttpStatus($code);
     echo json_encode($json);
-
-?>
